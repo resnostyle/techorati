@@ -29,6 +29,7 @@ jobs:
     - name: Build Docker images
       run: |
         for dir in ${{ steps.list-dockerfile-dirs.outputs.dockerfile-dirs }}; do
+          ls $dir
           docker build -t my-golang-app:$dir $dir
         done
 
