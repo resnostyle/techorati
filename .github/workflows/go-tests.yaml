@@ -1,0 +1,21 @@
+name: Go Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    name: Run Go tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.x' # Set the Go version you want to use
+
+    - name: Run tests
+      run: go test ./...
+
