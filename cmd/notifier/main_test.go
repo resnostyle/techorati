@@ -1,56 +1,62 @@
 package main
 
 import (
-    "bytes"
-    "encoding/json"
-    "net/http"
-    "net/http/httptest"
     "testing"
 
-    "github.com/stretchr/testify/assert"
+    mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-func TestHandlePostToSlack(t *testing.T) {
-    // Create a new HTTP request
-    reqBody := []byte(`{"message":"test message"}`)
-    req, err := http.NewRequest("POST", "/post-to-slack", bytes.NewBuffer(reqBody))
-    if err != nil {
-        t.Fatal(err)
-    }
-
-    // Create a ResponseRecorder (which satisfies http.ResponseWriter) to record the response
-    rr := httptest.NewRecorder()
-
-    // Call the handler function directly and pass in the request and response recorder
-    handlePostToSlack(rr, req)
-
-    // Check the status code
-    assert.Equal(t, http.StatusOK, rr.Code)
-
-    // Check the response body
-    expected := []byte("Message posted to Slack successfully")
-    assert.Equal(t, expected, rr.Body.Bytes())
+type mockPushover struct {
+    sentMessages []string
 }
 
-func TestPostToSlack(t *testing.T) {
-    // Mock HTTP server
-    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Check request payload
-        var data map[string]interface{}
-        err := json.NewDecoder(r.Body).Decode(&data)
-        if err != nil {
-            t.Fatal(err)
-        }
+func (m *mockPushover) SendNotification(message string) error {
+    m.sentMessages = append(m.sentMessages, message)
+    return nil
+}
 
-        assert.Equal(t, "test message", data["text"])
+func TestMessageHandler(t *testing.T) {
+    tests := []struct {
+        name     string
+        payload  string
+        expected []string
+    }{
+        {
+            name:     "Send a single message",
+            payload:  "Hello, world!",
+            expected: []string{"Hello, world!"},
+        },
+        {
+            name:     "Send multiple messages",
+            payload:  "Message 1\nMessage 2\nMessage 3",
+            expected: []string{"Message 1", "Message 2", "Message 3"},
+        },
+    }
 
-        // Respond with a mock success response
-        w.WriteHeader(http.StatusOK)
-        w.Write([]byte(`{"ok":true}`))
-    }))
-    defer server.Close()
+    for _, tc := range tests {
+        t.Run(tc.name, func(t *testing.T) {
+            mockClient := mqtt.NewClient(mqtt.NewClientOptions())
+            mockPush := &mockPushover{}
 
-    // Call the function to be tested
-    err := postToSlack("test message", server.URL)
-    assert.NoError(t, err)
+            config := &Config{
+                PushoverUser: "test-user",
+                PushoverKey:  "test-key",
+                PushoverURL:  "http://example.com/pushover",
+            }
+
+            MessageHandler(mockClient, &mqtt.Message{
+                Payload: []byte(tc.payload),
+            })
+
+            if len(mockPush.sentMessages) != len(tc.expected) {
+                t.Errorf("Expected %d messages, got %d", len(tc.expected), len(mockPush.sentMessages))
+            }
+
+            for i, msg := range tc.expected {
+                if mockPush.sentMessages[i] != msg {
+                    t.Errorf("Expected message %q, got %q", msg, mockPush.sentMessages[i])
+                }
+            }
+        })
+    }
 }
