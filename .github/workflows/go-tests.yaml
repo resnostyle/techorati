@@ -1,6 +1,12 @@
 name: Go Tests
 
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'cmd/**' # Trigger only when changes occur in the cmd folder and its subfolders
+  pull_request:
+    paths:
+      - 'cmd/**' # Trigger only when changes occur in the cmd folder and its subfolders
 
 jobs:
   test:
@@ -8,14 +14,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: '1.x' # Set the Go version you want to use
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.x' # Set the Go version you want to use
 
-    - name: Run tests
-      run: go test ./...
-
+      - name: List all directories in cmd
+        id: list_cmd_dirs
+        run: |
+          cmd_dirs=$(find cmd/* -maxdepth 0 -type d)
+          echo "::set-output name=cmd_dirs::${cmd_dirs}"
+  
+      - name: Run tests in cmd directories
+        run: |
+          for dir in ${{ steps.list_cmd_dirs.outputs.cmd_dirs }}; do
+            echo "Running tests in $dir"
+            cd "$dir" && go test
+          done
