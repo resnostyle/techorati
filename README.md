@@ -12,11 +12,8 @@ Techorati is a playground for learning and experimenting with various services a
 
 In this repository, you'll find a treasure trove of Golang services waiting to be discovered. From simple utilities to quirky applications, we've got it all! Here's a sneak peek at what you can expect:
 
-- **Random Service Generator:** Ever wanted to generate random quotes, jokes, or even cat facts? We've got you covered!
-- **Data Cruncher:** Crunch numbers, analyze data, and maybe uncover some hidden patterns.
-- **API Explorer:** Explore various APIs and see what interesting things you can build with them.
-- **Game Time:** Who says coding can't be fun? Dive into our collection of mini-games and challenge yourself.
-
+- **Notifier:** a service for sending pushover messages using MQTT
+ 
 ## Contributing
 
 We believe that the best ideas come from collaboration. So, if you have a cool project idea, a neat feature to add, or just want to fix a bug, we'd love to have you on board! Fork the repository, make your changes, and submit a pull request. Let's build something awesome together!
@@ -33,7 +30,5 @@ Ready to embark on this coding adventure? Here's how you can get started:
 4. **Share:** Once you've built something cool, share it with the community by submitting a pull request.
 
 ## Let's Connect!
-
-Got questions, ideas, or just want to hang out? Join us on Discord [here](https://discord.gg/techorati) and become part of the Techorati community!
 
 Happy coding! 🚀
