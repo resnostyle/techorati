@@ -1,62 +1,37 @@
-package main
+package main_test
 
 import (
+    "net/http"
+    "net/http/httptest"
     "testing"
 
-    mqtt "github.com/eclipse/paho.mqtt.golang"
+    "github.com/stretchr/testify/assert"
+
+    "github.com/resnostyle/techorati/pkg/parser"
 )
 
-type mockPushover struct {
-    sentMessages []string
-}
+func TestSendNotification(t *testing.T) {
+    // Create a test server to mock the Pushover API
+    server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        assert.Equal(t, http.MethodPost, r.Method, "expected POST method")
+        assert.Equal(t, "/1/messages.json", r.URL.String(), "expected URL /1/messages.json")
+        assert.Equal(t, "testKey", r.PostFormValue("token"), "expected token testKey")
+        assert.Equal(t, "testUser", r.PostFormValue("user"), "expected user testUser")
+        assert.Equal(t, "testMessage", r.PostFormValue("message"), "expected message testMessage")
 
-func (m *mockPushover) SendNotification(message string) error {
-    m.sentMessages = append(m.sentMessages, message)
-    return nil
-}
+        // Respond with success
+        w.WriteHeader(http.StatusOK)
+    }))
+    defer server.Close()
 
-func TestMessageHandler(t *testing.T) {
-    tests := []struct {
-        name     string
-        payload  string
-        expected []string
-    }{
-        {
-            name:     "Send a single message",
-            payload:  "Hello, world!",
-            expected: []string{"Hello, world!"},
-        },
-        {
-            name:     "Send multiple messages",
-            payload:  "Message 1\nMessage 2\nMessage 3",
-            expected: []string{"Message 1", "Message 2", "Message 3"},
-        },
+    // Replace the Pushover URL with the test server URL
+    pushover := &main.Pushover{
+        User: "testUser",
+        Key:  "testKey",
+        URL:  server.URL,
     }
 
-    for _, tc := range tests {
-        t.Run(tc.name, func(t *testing.T) {
-            mockClient := mqtt.NewClient(mqtt.NewClientOptions())
-            mockPush := &mockPushover{}
-
-            config := &Config{
-                PushoverUser: "test-user",
-                PushoverKey:  "test-key",
-                PushoverURL:  "http://example.com/pushover",
-            }
-
-            MessageHandler(mockClient, &mqtt.Message{
-                Payload: []byte(tc.payload),
-            })
-
-            if len(mockPush.sentMessages) != len(tc.expected) {
-                t.Errorf("Expected %d messages, got %d", len(tc.expected), len(mockPush.sentMessages))
-            }
-
-            for i, msg := range tc.expected {
-                if mockPush.sentMessages[i] != msg {
-                    t.Errorf("Expected message %q, got %q", msg, mockPush.sentMessages[i])
-                }
-            }
-        })
-    }
+    // Call the function to test
+    err := pushover.SendNotification("testMessage")
+    assert.NoError(t, err, "expected no error")
 }
