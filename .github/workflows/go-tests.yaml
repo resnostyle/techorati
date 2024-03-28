@@ -22,15 +22,15 @@ jobs:
         with:
           go-version: '1.x' # Set the Go version you want to use
 
-      - name: List changed directories
-        id: list_dirs
+      - name: List all directories in cmd
+        id: list_cmd_dirs
         run: |
-          changed_dirs=$(git diff-tree --no-commit-id --name-only -r ${{ github.sha }} -- cmd/ | xargs -I{} dirname {})
-          echo "::set-output name=changed_dirs::${changed_dirs}"
-
-      - name: Run tests in changed directories
+          cmd_dirs=$(find cmd/* -maxdepth 0 -type d)
+          echo "::set-output name=cmd_dirs::${cmd_dirs}"
+  
+      - name: Run tests in cmd directories
         run: |
-          for dir in ${{ steps.list_dirs.outputs.changed_dirs }}; do
+          for dir in ${{ steps.list_cmd_dirs.outputs.cmd_dirs }}; do
             echo "Running tests in $dir"
             cd "$dir" && go test
           done
