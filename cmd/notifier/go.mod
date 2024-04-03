@@ -1,6 +1,6 @@
 module github.com/resnostyle/techorati/tree/main/cmd/notifier
 
-go 1.22.1
+go 1.22.2
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
