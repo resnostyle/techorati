@@ -10,6 +10,8 @@ github.com/resnostyle/techorati v0.0.0-20240328180407-b031b829cf15 h1:P2AUW4H03r
 github.com/resnostyle/techorati v0.0.0-20240328180407-b031b829cf15/go.mod h1:hVtP72XF3Uf8PodBQvtGvRmgzgLMxhOPJyjPuNP9Q0A=
 github.com/resnostyle/techorati v0.0.0-20240328221715-8b1b35adf0b3 h1:w01IOIvQEO5AnCaxsMx7UStI1+0xnDK4chpbyE1kg98=
 github.com/resnostyle/techorati v0.0.0-20240328221715-8b1b35adf0b3/go.mod h1:hVtP72XF3Uf8PodBQvtGvRmgzgLMxhOPJyjPuNP9Q0A=
+github.com/resnostyle/techorati v0.0.0-20240403203206-0e0a29a45e05 h1:FIAIu9QnFMHR/3ARu+LWiY9Nhje02nC/TnwC2S2XSm8=
+github.com/resnostyle/techorati v0.0.0-20240403203206-0e0a29a45e05/go.mod h1:hVtP72XF3Uf8PodBQvtGvRmgzgLMxhOPJyjPuNP9Q0A=
 github.com/stretchr/testify v1.9.0 h1:HtqpIVDClZ4nwg75+f6Lvsy/wHu+3BoSGCbBAcpTsTg=
 github.com/stretchr/testify v1.9.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
 golang.org/x/net v0.8.0 h1:Zrh2ngAOFYneWTAIAPethzeaQLuHwhuBkuV6ZiRnUaQ=
