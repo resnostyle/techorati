@@ -10,6 +10,10 @@ import (
     "github.com/resnostyle/techorati/pkg/parser"
 
     mqtt "github.com/eclipse/paho.mqtt.golang"
+
+    "github.com/prometheus/client_golang/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promauto"
+    "github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 // Config represents the configuration struct for your service.
@@ -30,6 +34,9 @@ type Pushover struct {
 
 // SendNotification sends a notification to Pushover.
 func (p *Pushover) SendNotification(message string) error {
+    timer := prometheus.NewTimer(notificationDuration)
+    defer timer.ObserveDuration()
+
     form := url.Values{}
     form.Add("token", p.Key)
     form.Add("user", p.User)
@@ -37,10 +44,11 @@ func (p *Pushover) SendNotification(message string) error {
 
     resp, err := http.PostForm(p.URL, form)
     if err != nil {
+        notificationErrors.Inc()
         return err
     }
-    defer resp.Body.Close()
 
+    notificationsSent.Inc()
     return nil
 }
 
@@ -60,33 +68,43 @@ func MessageHandler(client mqtt.Client, msg mqtt.Message) {
     }
 }
 
-func loadConfig() *Config {
-    var config Config
-    err := envconfig.LoadConfig(&config)
-    if err != nil {
-        log.Fatalf("Error loading configuration: %v", err)
+func init() {
+    logger = log.New(os.Stdout, "API: ", log.Ldate|log.Ltime|log.Lshortfile)
+    if err := envconfig.Process("", &config); err != nil {
+        logger.Fatalf("Error loading configuration: %v", err)
     }
-    return &config
+}
+
+func setupMQTTClient() {
+    opts := mqtt.NewClientOptions().AddBroker(config.MQTTBroker)
+    // ... (rest of the MQTT setup)
+    mqttClient = mqtt.NewClient(opts)
+    if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
+        logger.Fatalf("Error connecting to MQTT broker: %v", token.Error())
+    }
 }
 
 func main() {
     config := loadConfig()
 
-    opts := mqtt.NewClientOptions().AddBroker(config.MQTTBroker)
-    opts.SetDefaultPublishHandler(MessageHandler)
+    // Set up Prometheus HTTP server
+    go func() {
+        http.Handle("/metrics", promhttp.Handler())
+        log.Fatal(http.ListenAndServe(":2112", nil))
+    }()
 
-    client := mqtt.NewClient(opts)
-    if token := client.Connect(); token.Wait() && token.Error() != nil {
-        panic(token.Error())
+    if err := setupMQTTClient(); err != nil {
+        logger.Fatalf("Failed to set up MQTT client: %v", err)
     }
 
     topic := fmt.Sprintf("%s/#", config.MQTTTopic)
-    if token := client.Subscribe(topic, 0, nil); token.Wait() && token.Error() != nil {
+    if token := mqttClient.Subscribe(topic, 0, nil); token.Wait() && token.Error() != nil {
         fmt.Println(token.Error())
         os.Exit(1)
     }
 
     fmt.Printf("Subscribed to MQTT topic: %s\n", topic)
+    fmt.Println("Prometheus metrics available at :2112/metrics")
     blocker := make(chan struct{})
     <-blocker
 }
