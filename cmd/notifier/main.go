@@ -47,6 +47,7 @@ func (p *Pushover) SendNotification(message string) error {
         notificationErrors.Inc()
         return err
     }
+    defer resp.Body.Close()
 
     notificationsSent.Inc()
     return nil
@@ -62,8 +63,7 @@ func MessageHandler(client mqtt.Client, msg mqtt.Message) {
         URL:  config.PushoverURL,
     }
 
-    err := pushover.SendNotification(string(msg.Payload()))
-    if err != nil {
+    if err := pushover.SendNotification(string(msg.Payload())); err != nil {
         log.Printf("Error sending notification: %v", err)
     }
 }
