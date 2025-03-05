@@ -12,6 +12,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog/log"
+	_ "github.com/resnostyle/techorati/internal/server/inventory"
 )
 
 type UcibiServer struct {
