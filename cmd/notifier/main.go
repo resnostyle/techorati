@@ -75,13 +75,15 @@ func init() {
     }
 }
 
-func setupMQTTClient() {
+func setupMQTTClient() error {
     opts := mqtt.NewClientOptions().AddBroker(config.MQTTBroker)
     // ... (rest of the MQTT setup)
     mqttClient = mqtt.NewClient(opts)
     if token := mqttClient.Connect(); token.Wait() && token.Error() != nil {
-        logger.Fatalf("Error connecting to MQTT broker: %v", token.Error())
+        return fmt.Errorf("Error connecting to MQTT broker: %w", token.Error())
     }
+    return nil
+}
 }
 
 func main() {
