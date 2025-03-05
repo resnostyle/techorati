@@ -1,4 +1,4 @@
-package inventory
+package main
 
 import (
     "github.com/gin-gonic/gin"
@@ -12,5 +12,7 @@ func main() {
         c.JSON(http.StatusOK, gin.H{"message": "pong"})
     })
 
-    r.Run(":8081") // Start the server on port 8081
-} 
+    if err := r.Run(":8081"); err != nil {
+        log.Fatalf("Failed to start server: %v", err)
+    }
+}
