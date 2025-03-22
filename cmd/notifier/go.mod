@@ -13,6 +13,6 @@ require (
 
 require (
 	github.com/eclipse/paho.mqtt.golang v1.5.0
-	github.com/resnostyle/techorati v0.0.0-20240328221715-8b1b35adf0b3
+	github.com/resnostyle/techorati v0.0.0-20250321210338-c929f7873d8d
 	github.com/stretchr/testify v1.9.0
 )
